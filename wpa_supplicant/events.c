@@ -6550,6 +6550,79 @@ static const char * connect_fail_reason(enum sta_connect_fail_reason_codes code)
 }
 
 
+#ifdef CONFIG_MBO
+
+/*
+ * Check whether retrying on best (a sibling link of the same AP MLD as
+ * reject_bss) is safe, i.e., it does not reduce the number of usable links
+ * compared to the authoritative view anchored on reject_bss.
+ */
+static bool wpas_mlo_safe_sibling_retry(struct wpa_supplicant *wpa_s,
+					struct wpa_bss *reject_bss,
+					struct wpa_bss *best,
+					struct wpa_ssid *ssid)
+{
+	if (!best || !best->valid_links ||
+	    !ether_addr_equal(best->mld_addr, reject_bss->mld_addr))
+		return false;
+
+	return wpa_bss_get_usable_links(wpa_s, best, ssid, NULL) ==
+		wpa_bss_get_usable_links(wpa_s, reject_bss, ssid, NULL);
+}
+
+
+static bool wpas_oce_ml_link_reject(struct wpa_supplicant *wpa_s,
+				    struct wpa_bss *reject_bss)
+{
+	struct wpa_ssid *ssid = wpa_s->current_ssid;
+	struct wpa_ssid *sel_ssid;
+	struct wpa_bss *best;
+
+	if (!reject_bss->valid_links || !ssid)
+		return false;
+
+	/*
+	 * For MLO, do not just blindly retry on another link of the same AP
+	 * MLD. Exclude the rejected link and let the normal ranked selection
+	 * decide:
+	 * 1) If a better/alternate AP (a different AP MLD, or a non-MLD AP) is
+	 *    now the top candidate, let the generic connection-failure path
+	 *    connect to it.
+	 * 2) Only if the top candidate is still a sibling link of this same AP
+	 *    MLD, immediately retry on it instead of waiting for the Retry
+	 *    Delay -- but only if doing so does not reduce the number of
+	 *    usable links compared to the authoritative view anchored on
+	 *    reject_bss.
+	 */
+	wpa_bssid_ignore_add(wpa_s, reject_bss->bssid);
+
+	best = wpa_supplicant_pick_network(wpa_s, &sel_ssid, false);
+
+	if (best &&
+	    wpas_mlo_safe_sibling_retry(wpa_s, reject_bss, best, ssid)) {
+		wpa_printf(MSG_DEBUG,
+			   "MLO: OCE rejection on link %d, no better AP MLD available, retrying on link %d "
+			   MACSTR,
+			   reject_bss->mld_link_id, best->mld_link_id,
+			   MAC2STR(best->bssid));
+		wpas_connect_work_done(wpa_s);
+		wpa_supplicant_mark_disassoc(wpa_s);
+		wpa_supplicant_connect(wpa_s, best, ssid);
+		return true;
+	}
+
+	if (best)
+		wpa_printf(MSG_DEBUG,
+			   "MLO: MBOOCE rejection on link %d, continuing with generic re-selection, best candidate "
+			   MACSTR,
+			   reject_bss->mld_link_id, MAC2STR(best->bssid));
+
+	return false;
+}
+
+#endif /* CONFIG_MBO */
+
+
 static void wpas_event_assoc_reject(struct wpa_supplicant *wpa_s,
 				    union wpa_event_data *data)
 {
@@ -6679,6 +6752,8 @@ static void wpas_event_assoc_reject(struct wpa_supplicant *wpa_s,
 					     reject_bss->bssid,
 					     rssi_rej[3],
 					     rssi_rej[2] + reject_bss->level);
+			if (wpas_oce_ml_link_reject(wpa_s, reject_bss))
+				return;
 		}
 	}
 #endif /* CONFIG_MBO */
