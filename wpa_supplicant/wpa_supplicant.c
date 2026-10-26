@@ -3312,15 +3312,21 @@ void wpas_connect_work_done(struct wpa_supplicant *wpa_s)
 
 int wpas_update_random_addr(struct wpa_supplicant *wpa_s,
 			    enum wpas_mac_addr_style style,
-			    struct wpa_ssid *ssid)
+			    struct wpa_ssid *ssid, bool update_lifetime)
 {
 	struct os_reltime now;
 	u8 addr[ETH_ALEN];
+	bool same_ess;
 
 	os_get_reltime(&now);
 	/* Random addresses are valid within a given ESS so check
-	 * expiration/value only when continuing to use the same ESS. */
-	if (wpa_s->last_mac_addr_style == style && wpa_s->reassoc_same_ess) {
+	 * expiration/value whenever the address is still associated with the
+	 * same configured network. A scan while disconnected does not have an
+	 * SSID to compare, so use the last selected network as the context. */
+	same_ess = wpa_s->reassoc_same_ess ||
+		(wpa_s->last_ssid &&
+		 (!ssid || wpa_s->last_ssid == ssid));
+	if (wpa_s->last_mac_addr_style == style && same_ess) {
 		if (style == WPAS_MAC_ADDR_STYLE_DEDICATED_PER_ESS) {
 			/* Pregenerated addresses do not expire but their value
 			 * might have changed, so let's check that. */
@@ -3367,7 +3373,8 @@ int wpas_update_random_addr(struct wpa_supplicant *wpa_s,
 		return -1;
 	}
 
-	os_get_reltime(&wpa_s->last_mac_addr_change);
+	if (update_lifetime)
+		os_get_reltime(&wpa_s->last_mac_addr_change);
 	wpa_s->mac_addr_changed = 1;
 	wpa_s->last_mac_addr_style = style;
 
@@ -3394,7 +3401,7 @@ int wpas_update_random_addr_disassoc(struct wpa_supplicant *wpa_s)
 		return 0;
 
 	return wpas_update_random_addr(wpa_s, wpa_s->conf->preassoc_mac_addr,
-				       NULL);
+				       NULL, false);
 }
 
 
@@ -3584,7 +3591,8 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 #endif /* CONFIG_SAE */
 
 	if (rand_style > WPAS_MAC_ADDR_STYLE_PERMANENT) {
-		int status = wpas_update_random_addr(wpa_s, rand_style, ssid);
+		int status = wpas_update_random_addr(wpa_s, rand_style, ssid,
+						     true);
 
 		if (status < 0)
 			return;

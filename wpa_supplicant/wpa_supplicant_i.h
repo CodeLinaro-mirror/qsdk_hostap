@@ -1971,7 +1971,7 @@ int wpas_populate_wfa_capa(struct wpa_supplicant *wpa_s, struct wpa_bss *bss,
 			   size_t max_wpa_ie_len);
 int wpas_update_random_addr(struct wpa_supplicant *wpa_s,
 			    enum wpas_mac_addr_style style,
-			    struct wpa_ssid *ssid);
+			    struct wpa_ssid *ssid, bool update_lifetime);
 int wpas_update_random_addr_disassoc(struct wpa_supplicant *wpa_s);
 
 int wpas_get_op_chan_phy(int freq, const u8 *ies, size_t ies_len,
