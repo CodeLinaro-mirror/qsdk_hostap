@@ -525,6 +525,8 @@ bool security_profile_has_eppke(const u8 *sp, int ssid_key_mgmt)
  *                 corresponding non-_AUTH profiles (11-15) that share the
  *                 same AKM.  Must be false for non-802.1X AKMs.
  * @eppke: Whether EPPKE is used
+ * @enabled_profiles: -1 terminated array of enabled security profile numbers
+ *     or NULL.
  * @bitmap: AP's Security Profile Bitmap (from the Security Profile element)
  * @bitmap_len: Length of @bitmap in bytes
  * Returns: Selected profile number (0-119) on success, -1 if no match found.
@@ -551,6 +553,7 @@ bool security_profile_has_eppke(const u8 *sp, int ssid_key_mgmt)
 const struct security_profile_entry *
 security_profile_select(int akmp, int pairwise_cipher,
 			bool eap_over_auth, bool eppke,
+			const int *enabled_profiles,
 			const u8 *bitmap, size_t bitmap_len)
 {
 	unsigned int profile;
@@ -574,6 +577,11 @@ security_profile_select(int akmp, int pairwise_cipher,
 
 		sp = sec_prof_get(profile);
 		if (!sp)
+			continue;
+
+		/* PQC security profiles need to be explicitly enabled */
+		if (sec_prof_pqc(profile) &&
+		    !sec_prof_list_includes(enabled_profiles, profile))
 			continue;
 
 		/* Check AKM match using the per-profile mapping */

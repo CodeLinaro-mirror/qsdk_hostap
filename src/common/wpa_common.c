@@ -5295,6 +5295,25 @@ int sec_prof_implied_key_mgmt(const int *profiles)
 }
 
 
+/**
+ * sec_prof_list_includes - Check whether a security profile is enabled
+ * @profiles: -1 terminated integer array of security profile numbers
+ * @num: Security profile number to check for inclusion in @profiles
+ * Returns: Whether @num is included in @profiles
+ */
+bool sec_prof_list_includes(const int *profiles, int num)
+{
+	int i;
+
+	for (i = 0; profiles && profiles[i] >= 0; i++) {
+		if (profiles[i] == num)
+			return true;
+	}
+
+	return false;
+}
+
+
 const struct security_profile_entry * sec_prof_get(int p)
 {
 	unsigned int i;

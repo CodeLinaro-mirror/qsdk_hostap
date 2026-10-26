@@ -891,6 +891,7 @@ struct security_profile_entry {
 
 
 int sec_prof_implied_key_mgmt(const int *profiles);
+bool sec_prof_list_includes(const int *profiles, int num);
 const struct security_profile_entry * sec_prof_get(int p);
 
 /* IEEE P802.11bt/D1.0, Table 12-aa1 (PQC profiles) */

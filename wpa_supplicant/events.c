@@ -888,7 +888,7 @@ static int wpa_supplicant_ssid_bss_match(struct wpa_supplicant *wpa_s,
 		 */
 		if (sp) {
 			int sp_key_mgmt = security_profile_get_key_mgmt(
-				sp, ssid->key_mgmt);
+				sp, ssid->key_mgmt, ssid->security_profiles);
 
 			if (!sp_key_mgmt ||
 			    !(ssid->pairwise_cipher & WPA_CIPHER_GCMP_256)) {

@@ -1675,17 +1675,23 @@ security_profile_select_best(const u8 *sp, const int *numbers)
 
 /*
  * security_profile_get_key_mgmt - Get key_mgmt bitmask implied by any
- * profile in the AP's Security Profile element that matches ssid->key_mgmt.
+ * profile in the AP's Security Profile element that matches the local
+ * configuration.
+ * @sp: AP's Security Profile element
+ * @ssid_key_mgmt: Locally configured WPA_KEY_MGMT_* bitmask
+ * @enabled_profiles: -1 terminated array of security profile numbers or %NULL
  *
  * Walks the AP's Security Profile Bitmap and returns a WPA_KEY_MGMT_* bitmask
  * covering all profiles whose bit is set and whose AKM matches at least one
- * AKM in ssid->key_mgmt. Returns 0 if no matching profile is found.
+ * AKM in @ssid_key_mgmt. PQC security profiles are matched only when included
+ * in @enabled_profiles. Returns 0 if no matching profile is found.
  *
  * This is used to augment ie.key_mgmt so that the RSNE check in
  * wpa_supplicant_set_suites() succeeds even when the RSNE/RSNOE/RSNO2E does
  * not explicitly list the AKM that the security profile implies.
  */
-int security_profile_get_key_mgmt(const u8 *sp, int ssid_key_mgmt)
+int security_profile_get_key_mgmt(const u8 *sp, int ssid_key_mgmt,
+				  const int *enabled_profiles)
 {
 	u8 bitmap_len, num_vendor;
 	const u8 *bitmap;
@@ -1715,6 +1721,16 @@ int security_profile_get_key_mgmt(const u8 *sp, int ssid_key_mgmt)
 	     profile++) {
 		if (!(bitmap[profile / 8] & BIT(profile % 8)))
 			continue;
+
+		if (sec_prof_pqc(profile)) {
+			const struct security_profile_entry *e;
+
+			e = sec_prof_get(profile);
+			if (e && sec_prof_list_includes(enabled_profiles,
+							profile))
+				result |= e->key_mgmt;
+			continue;
+		}
 
 		/*
 		 * security_profile_akm_matches() expects a single key_mgmt
@@ -2141,6 +2157,7 @@ int wpa_supplicant_set_suites(struct wpa_supplicant *wpa_s,
 	bool wmm;
 	struct rsn_pmksa_cache_entry *pmksa;
 	const struct security_profile_entry *sel_sp = NULL;
+	int sp_key_mgmt = 0;
 	int cipher;
 
 	if (bss) {
@@ -2166,6 +2183,10 @@ int wpa_supplicant_set_suites(struct wpa_supplicant *wpa_s,
 	if (bss_rsn && wpa_parse_wpa_ie(bss_rsn, 2 + bss_rsn[1], &ie) == 0)
 		rsne_parsed = true;
 
+	if (bss_sp)
+		sp_key_mgmt = security_profile_get_key_mgmt(
+			bss_sp, ssid->key_mgmt, ssid->security_profiles);
+
 	if (bss_sp && ssid->security_profiles && rsne_parsed &&
 	    ssid->security_profiles &&
 	    (sel_sp = security_profile_select_best(bss_sp,
@@ -2183,7 +2204,7 @@ int wpa_supplicant_set_suites(struct wpa_supplicant *wpa_s,
 		     * the RSNE/RSNOE/RSNO2E does not list it.
 		     */
 		    (bss_sp &&
-		     security_profile_get_key_mgmt(bss_sp, ssid->key_mgmt) &&
+		     sp_key_mgmt &&
 		     (ssid->pairwise_cipher & WPA_CIPHER_GCMP_256))) &&
 		   ((ie.key_mgmt & ssid->key_mgmt) ||
 		    /*
@@ -2195,18 +2216,14 @@ int wpa_supplicant_set_suites(struct wpa_supplicant *wpa_s,
 		     * cipher, so treat GCMP-256 as available when a matching
 		     * profile exists. */
 		    (bss_sp &&
-		     security_profile_get_key_mgmt(bss_sp, ssid->key_mgmt) &&
+		     sp_key_mgmt &&
 		     (ssid->pairwise_cipher & WPA_CIPHER_GCMP_256)))) {
 		/*
 		 * When the RSNE did not advertise the AKM/cipher but the
 		 * Security Profile element did, augment ie so that the rest of
 		 * wpa_supplicant_set_suites() can proceed normally.
 		 */
-		if (bss_sp &&
-		    security_profile_get_key_mgmt(bss_sp, ssid->key_mgmt)) {
-			int sp_key_mgmt = security_profile_get_key_mgmt(
-				bss_sp, ssid->key_mgmt);
-
+		if (bss_sp && sp_key_mgmt) {
 			if (!(ie.pairwise_cipher & WPA_CIPHER_GCMP_256) &&
 			    (ssid->pairwise_cipher & WPA_CIPHER_GCMP_256)) {
 				wpa_dbg(wpa_s, MSG_DEBUG,
@@ -2214,7 +2231,7 @@ int wpa_supplicant_set_suites(struct wpa_supplicant *wpa_s,
 				ie.pairwise_cipher |= WPA_CIPHER_GCMP_256;
 				ie.has_pairwise = 1;
 			}
-			if (!(ie.key_mgmt & ssid->key_mgmt) && sp_key_mgmt) {
+			if (!(ie.key_mgmt & ssid->key_mgmt)) {
 				wpa_dbg(wpa_s, MSG_DEBUG,
 					"RSN: Security Profile element overrides RSNE AKM (key_mgmt=0x%x)",
 					sp_key_mgmt);
@@ -2911,7 +2928,8 @@ int wpa_supplicant_set_suites(struct wpa_supplicant *wpa_s,
 		wpa_s->sel_security_profile =
 			security_profile_select(
 				wpa_s->key_mgmt, wpa_s->pairwise_cipher,
-				eap_over_auth, eppke, bitmap, bitmap_len);
+				eap_over_auth, eppke, ssid->security_profiles,
+				bitmap, bitmap_len);
 
 		if (wpa_s->sel_security_profile) {
 			wpa_dbg(wpa_s, MSG_DEBUG,

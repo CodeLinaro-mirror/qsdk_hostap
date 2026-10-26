@@ -767,6 +767,7 @@ static size_t sme_802_1x_auth_start_sec_prof(struct wpa_supplicant *wpa_s,
 	const u8 *bitmap;
 	int ret;
 	const struct security_profile_entry *profile;
+	struct wpa_ssid *ssid = wpa_s->current_ssid;
 
 	/*
 	 * Security Profile element is included only when the RSNE is present in
@@ -832,7 +833,9 @@ static size_t sme_802_1x_auth_start_sec_prof(struct wpa_supplicant *wpa_s,
 		profile = security_profile_select(
 			key_mgmt,
 			wpa_s->sme.ext_pairwise_cipher, true,
-			false, bitmap, bitmap_len);
+			false,
+			ssid ? ssid->security_profiles : NULL,
+			bitmap, bitmap_len);
 	if (!profile)
 		return 0;
 
@@ -2065,7 +2068,8 @@ static void sme_send_authentication(struct wpa_supplicant *wpa_s,
 				const u8 *sp = wpa_bss_get_ie_ext(
 					bss, WLAN_EID_EXT_SECURITY_PROFILE);
 				int sp_km = security_profile_get_key_mgmt(
-					sp, ssid->key_mgmt);
+					sp, ssid->key_mgmt,
+					ssid->security_profiles);
 
 				if (sp_km && wpa_key_mgmt_sae(sp_km) &&
 				    !wpas_is_sae_avoided(wpa_s, ssid, &ied)) {
@@ -2107,7 +2111,8 @@ static void sme_send_authentication(struct wpa_supplicant *wpa_s,
 				   wpa_bss_get_ie_ext(
 					   bss,
 					   WLAN_EID_EXT_SECURITY_PROFILE),
-				   ssid->key_mgmt) & WPA_KEY_MGMT_EPPKE) &&
+				   ssid->key_mgmt, ssid->security_profiles) &
+			    WPA_KEY_MGMT_EPPKE) &&
 			   wpas_eppke_ap_capable(wpa_s, bss, true)) {
 			wpa_dbg(wpa_s, MSG_DEBUG, "Using EPPKE auth_alg via security profile");
 			params.auth_alg = WPA_AUTH_ALG_EPPKE;

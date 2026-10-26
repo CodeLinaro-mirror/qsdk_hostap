@@ -2297,7 +2297,8 @@ bool wpas_security_profile_active(struct wpa_supplicant *wpa_s);
  */
 const struct security_profile_entry *
 security_profile_select_best(const u8 *sp, const int *numbers);
-int security_profile_get_key_mgmt(const u8 *sp, int ssid_key_mgmt);
+int security_profile_get_key_mgmt(const u8 *sp, int ssid_key_mgmt,
+				  const int *enabled_profiles);
 const u8 * security_profile_get_rsnx(const u8 *sp, size_t *rsnx_len);
 int security_profile_get_rsn_caps(const u8 *sp);
 bool sec_prof_list_has_eap_over_auth(const int *numbers);

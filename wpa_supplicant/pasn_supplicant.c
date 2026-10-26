@@ -765,6 +765,7 @@ static struct wpa_bss * wpas_pasn_allowed(struct wpa_supplicant *wpa_s,
 	if (!(rsne_data.key_mgmt & akmp) ||
 	    !(rsne_data.pairwise_cipher & cipher)) {
 		bool sp_match = false;
+		struct wpa_ssid *ssid = wpa_s->current_ssid;
 
 		/*
 		 * The AP's RSNE may omit GCMP-256 or the requested AKM while
@@ -780,7 +781,9 @@ static struct wpa_bss * wpas_pasn_allowed(struct wpa_supplicant *wpa_s,
 			const u8 *sp = wpa_bss_get_ie_ext(
 				bss, WLAN_EID_EXT_SECURITY_PROFILE);
 
-			if (security_profile_get_key_mgmt(sp, akmp))
+			if (security_profile_get_key_mgmt(
+				    sp, akmp,
+				    ssid ? ssid->security_profiles : NULL))
 				sp_match = true;
 		}
 
@@ -863,6 +866,7 @@ static void wpas_pasn_sec_prof_eppke(struct wpa_supplicant *wpa_s,
 	u8 bitmap_len;
 	u8 sp_buf[256];
 	int sp_len;
+	struct wpa_ssid *ssid = wpa_s->current_ssid;
 
 	if (!wpas_security_profile_active(wpa_s))
 		return;
@@ -909,7 +913,9 @@ static void wpas_pasn_sec_prof_eppke(struct wpa_supplicant *wpa_s,
 	 * No new driver attribute is required.
 	 */
 	profile = security_profile_select(awork->akmp, awork->cipher,
-					  false, true, bitmap, bitmap_len);
+					  false, true,
+					  ssid ? ssid->security_profiles : NULL,
+					  bitmap, bitmap_len);
 	if (!profile)
 		return;
 
