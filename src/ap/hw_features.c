@@ -781,6 +781,14 @@ static int ieee80211ac_supported_vht_capab(struct hostapd_iface *iface)
 #endif /* CONFIG_IEEE80211AC */
 
 
+#ifdef CONFIG_IEEE80211BN
+static int ieee80211bn_supported_uhr_capab(struct hostapd_iface *iface)
+{
+	return iface->current_mode->uhr_capab[IEEE80211_MODE_AP].uhr_supported;
+}
+#endif /* CONFIG_IEEE80211BN */
+
+
 #ifdef CONFIG_IEEE80211BE
 static int ieee80211be_supported_eht_capab(struct hostapd_iface *iface)
 {
@@ -814,6 +822,14 @@ static int hostapd_check_phy_capab(struct hostapd_iface *iface)
 		return -1;
 	}
 #endif /* CONFIG_IEEE80211BE */
+
+#ifdef CONFIG_IEEE80211BN
+	if (iface->conf->ieee80211bn &&
+	    !ieee80211bn_supported_uhr_capab(iface)) {
+		wpa_printf(MSG_ERROR, "Driver does not support UHR");
+		return -1;
+	}
+#endif /* CONFIG_IEEE80211BN */
 
 	return 0;
 }
