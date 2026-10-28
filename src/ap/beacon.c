@@ -1910,7 +1910,8 @@ u8 * hostapd_unsol_bcast_probe_resp(struct hostapd_data *hapd,
 {
 	struct probe_resp_params probe_params;
 
-	if (!is_6ghz_op_class(hapd->iconf->op_class))
+	if (!is_6ghz_op_class(hapd->iconf->op_class) ||
+	    !hapd->conf->unsol_bcast_probe_resp_interval)
 		return NULL;
 
 	ubpr->unsol_bcast_probe_resp_interval =
