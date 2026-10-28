@@ -797,12 +797,35 @@ static int ieee80211ax_supported_he_capab(struct hostapd_iface *iface)
 #endif /* CONFIG_IEEE80211AX */
 
 
+static int hostapd_check_phy_capab(struct hostapd_iface *iface)
+{
+#ifdef CONFIG_IEEE80211AX
+	if (iface->conf->ieee80211ax &&
+	    !ieee80211ax_supported_he_capab(iface)) {
+		wpa_printf(MSG_ERROR, "Driver does not support HE");
+		return -1;
+	}
+#endif /* CONFIG_IEEE80211AX */
+
+#ifdef CONFIG_IEEE80211BE
+	if (iface->conf->ieee80211be &&
+	    !ieee80211be_supported_eht_capab(iface)) {
+		wpa_printf(MSG_ERROR, "Driver does not support EHT");
+		return -1;
+	}
+#endif /* CONFIG_IEEE80211BE */
+
+	return 0;
+}
+
+
 int hostapd_check_ht_capab(struct hostapd_iface *iface)
 {
 	int ret;
 
 	if (is_6ghz_freq(iface->freq))
-		return 0;
+		return hostapd_check_phy_capab(iface);
+
 	if (!iface->conf->ieee80211n)
 		return 0;
 
@@ -816,25 +839,16 @@ int hostapd_check_ht_capab(struct hostapd_iface *iface)
 
 	if (!ieee80211n_supported_ht_capab(iface))
 		return -1;
-#ifdef CONFIG_IEEE80211BE
-	if (iface->conf->ieee80211be &&
-	    !ieee80211be_supported_eht_capab(iface)) {
-		wpa_printf(MSG_ERROR, "Driver does not support EHT");
-		return -1;
-	}
-#endif /* CONFIG_IEEE80211BE */
-#ifdef CONFIG_IEEE80211AX
-	if (iface->conf->ieee80211ax &&
-	    !ieee80211ax_supported_he_capab(iface)) {
-		wpa_printf(MSG_ERROR, "Driver does not support HE");
-		return -1;
-	}
-#endif /* CONFIG_IEEE80211AX */
+
 #ifdef CONFIG_IEEE80211AC
 	if (iface->conf->ieee80211ac &&
 	    !ieee80211ac_supported_vht_capab(iface))
 		return -1;
 #endif /* CONFIG_IEEE80211AC */
+
+	if (hostapd_check_phy_capab(iface))
+		return -1;
+
 	ret = ieee80211n_check_40mhz(iface);
 	if (ret)
 		return ret;
