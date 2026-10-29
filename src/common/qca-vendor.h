@@ -4639,6 +4639,20 @@ enum qca_wlan_vendor_attr_config {
 	 */
 	QCA_WLAN_VENDOR_ATTR_CONFIG_ALLOW_BTWT_ID0 = 151,
 
+	/* 8-bit unsigned value to indicate the user activity state of the
+	 * device (e.g., display on/off) to the driver. Uses
+	 * enum qca_wlan_vendor_user_activity_state values. This indication is
+	 * independent of other suspend/resume related triggers from userspace.
+	 *
+	 * The driver can use this to optimize its behavior, e.g., when the user
+	 * is idle, roam to a better AP if the connection has no or minimal data
+	 * activity for a certain duration and the device is stationary.
+	 *
+	 * The driver shall assume %QCA_WLAN_VENDOR_USER_ACTIVITY_STATE_ACTIVE
+	 * until this attribute is configured by userspace.
+	 */
+	QCA_WLAN_VENDOR_ATTR_CONFIG_USER_ACTIVITY_STATE = 152,
+
 	/* keep last */
 	QCA_WLAN_VENDOR_ATTR_CONFIG_AFTER_LAST,
 	QCA_WLAN_VENDOR_ATTR_CONFIG_MAX =
@@ -26371,6 +26385,22 @@ enum qca_vendor_attr_extended_monitor_peer_info {
 	QCA_VENDOR_ATTR_EXT_MON_PEER_INFO_AFTER_LAST,
 	QCA_VENDOR_ATTR_EXT_MON_PEER_INFO_MAX =
 	QCA_VENDOR_ATTR_EXT_MON_PEER_INFO_AFTER_LAST - 1,
+};
+
+/**
+ * enum qca_wlan_vendor_user_activity_state - User activity state of the device
+ *
+ * Values for %QCA_WLAN_VENDOR_ATTR_CONFIG_USER_ACTIVITY_STATE.
+ *
+ * @QCA_WLAN_VENDOR_USER_ACTIVITY_STATE_IDLE: The user is not actively using
+ *	the device, e.g., the display of the device is off.
+ *
+ * @QCA_WLAN_VENDOR_USER_ACTIVITY_STATE_ACTIVE: The user is actively using the
+ *	device, e.g., the display of the device is on.
+ */
+enum qca_wlan_vendor_user_activity_state {
+	QCA_WLAN_VENDOR_USER_ACTIVITY_STATE_IDLE = 0,
+	QCA_WLAN_VENDOR_USER_ACTIVITY_STATE_ACTIVE = 1,
 };
 
 #endif /* QCA_VENDOR_H */
