@@ -222,6 +222,8 @@ def test_p2p_pairing_password_dev2(dev, apdev):
 
 def test_p2p_pairing_opportunistic(dev, apdev):
     """P2P Pairing with Opportunistic"""
+    check_sae_capab(dev[0])
+    check_sae_capab(dev[1])
     check_p2p2_capab(dev[0])
     check_p2p2_capab(dev[1])
 
@@ -265,6 +267,7 @@ def test_p2p_pairing_opportunistic(dev, apdev):
     if "FAIL" in id0:
         raise Exception("P2P_CONNECT auth Failed")
 
+    dev[0].set("sae_groups", "")
     cmd = "P2P_CONNECT " + dev[1].p2p_dev_addr() + " pair provdisc he go_intent=5 p2p2 bstrapmethod=1"
     id0 = dev[0].global_request(cmd)
     if "FAIL" in id0:
@@ -288,6 +291,8 @@ def test_p2p_pairing_opportunistic(dev, apdev):
 
 def test_p2p_auto_go_and_client_join(dev, apdev):
     """A new client joining a group using P2P Pairing/Opportunistic"""
+    check_sae_capab(dev[0])
+    check_sae_capab(dev[1])
     check_p2p2_capab(dev[0])
     check_p2p2_capab(dev[1])
 
@@ -340,6 +345,7 @@ def test_p2p_auto_go_and_client_join(dev, apdev):
     if "FAIL" in id0:
         raise Exception("P2P_CONNECT auth failed")
 
+    dev[0].set("sae_groups", "")
     cmd = "P2P_CONNECT " + dev[1].p2p_dev_addr() + " pair provdisc p2p2 join bstrapmethod=1"
     id0 = dev[0].global_request(cmd)
     if "FAIL" in id0:
@@ -359,6 +365,8 @@ def test_p2p_auto_go_and_client_join(dev, apdev):
 
 def test_p2p_pcc_auto_go_and_pcc_client_join(dev, apdev):
     """A PCC client joining a PCC Auto GO using P2P join"""
+    check_sae_capab(dev[0])
+    check_sae_capab(dev[1])
     check_p2p2_capab(dev[0])
     check_p2p2_capab(dev[1])
 
@@ -411,6 +419,7 @@ def test_p2p_pcc_auto_go_and_pcc_client_join(dev, apdev):
         raise Exception("passphrase mismatch(2)")
 
     cli = dev[0]
+    cli.set("sae_groups", "")
     id2 = cli.p2pdev_add_network()
     cli.p2pdev_set_network_quoted(id2, "ssid", res['ssid'])
     cli.p2pdev_set_network_quoted(id2, "psk", res['passphrase'])
@@ -755,6 +764,8 @@ def test_p2p_auto_go_pcc_with_two_cli(dev, apdev):
 
 def test_p2p_auto_go_pcc_with_p2p2_cli(dev, apdev):
     """P2P autonomous GO in PCC mode with P2P2 clients"""
+    check_sae_capab(dev[0])
+    check_sae_capab(dev[1])
     check_p2p2_capab(dev[0])
     check_p2p2_capab(dev[1])
     set_p2p2_configs(dev[0])
@@ -773,6 +784,7 @@ def test_p2p_auto_go_pcc_with_p2p2_cli(dev, apdev):
     if dev[0].group_request("P2P_GET_PASSPHRASE") != res['passphrase']:
         raise Exception("passphrase mismatch(2)")
 
+    dev[1].set("sae_groups", "")
     ssidhex =  binascii.hexlify(res['ssid'].encode()).decode()
     cmd = "P2P_CONNECT " + dev[0].p2p_dev_addr() + " pair p2p2 skip_prov join password=" + res['passphrase'] + " ssid=" + ssidhex
     id0 = dev[1].global_request(cmd)
@@ -855,6 +867,8 @@ def test_p2p_r2_pcc_auto_go_and_pcc_client_sae_no_group_iface(dev, apdev):
 
 def test_p2p_bootstrapping_comeback_pairing(dev, apdev):
     """P2P bootstrapping with comeback and pairing"""
+    check_sae_capab(dev[0])
+    check_sae_capab(dev[1])
     check_p2p2_capab(dev[0])
     check_p2p2_capab(dev[1])
 
@@ -911,6 +925,7 @@ def test_p2p_bootstrapping_comeback_pairing(dev, apdev):
     if "FAIL" in dev[1].global_request(cmd):
         raise Exception("NAN_CANCEL_PUBLISH for P2P failed")
 
+    dev[0].set("sae_groups", "")
     cmd = "P2P_CONNECT " + dev[1].p2p_dev_addr() + " pair he go_intent=5 p2p2 bstrapmethod=1"
     id0 = dev[0].global_request(cmd)
     if "FAIL" in id0:
