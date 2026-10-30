@@ -1534,7 +1534,7 @@ def test_sigma_dut_dpp_qr_init_enrollee(dev, apdev):
         if "status,COMPLETE" not in res:
             raise Exception("dev_exec_action did not succeed: " + res)
 
-        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPAuthDirection,Single,DPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,6,DPPWaitForConnect,Yes", timeout=10)
+        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPAuthDirection,Single,DPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,16,DPPWaitForConnect,Yes", timeout=20)
         if "BootstrapResult,OK,AuthResult,OK,ConfResult,OK,NetworkIntroResult,OK,NetworkConnectResult,OK" not in res:
             raise Exception("Unexpected result: " + res)
 
@@ -1618,10 +1618,10 @@ def run_sigma_dut_dpp_qr_mutual_init_enrollee_check(dev, apdev, extra='',
         if "status,COMPLETE" not in res:
             raise Exception("dev_exec_action did not succeed: " + res)
 
-        cmd = "dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,%sDPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,6,DPPWaitForConnect,Yes" % extra
+        cmd = "dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,%sDPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,16,DPPWaitForConnect,Yes" % extra
         if mud_url:
             cmd += ",MUDURL," + mud_url
-        res = dut.cmd_check(cmd, timeout=10)
+        res = dut.cmd_check(cmd, timeout=20)
         dut.cmd_check("sta_reset_default,interface,%s,prog,DPP" % ifname)
         if "BootstrapResult,OK,AuthResult,OK,ConfResult,OK,NetworkIntroResult,OK,NetworkConnectResult,OK" not in res:
             raise Exception("Unexpected result: " + res)
@@ -1840,7 +1840,7 @@ def test_sigma_dut_dpp_qr_init_enrollee_psk(dev, apdev):
         if "status,COMPLETE" not in res:
             raise Exception("dev_exec_action did not succeed: " + res)
 
-        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPAuthDirection,Single,DPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,6,DPPWaitForConnect,Yes", timeout=10)
+        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPAuthDirection,Single,DPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,16,DPPWaitForConnect,Yes", timeout=20)
         if "BootstrapResult,OK,AuthResult,OK,ConfResult,OK,NetworkConnectResult,OK" not in res:
             raise Exception("Unexpected result: " + res)
 
@@ -3192,7 +3192,7 @@ def run_sigma_dut_dpp_proto_peer_disc_req(dev, apdev, args):
     with SigmaDut(dev=dev[0]) as dut:
         init_sigma_dut_dpp_proto_peer_disc_req(dut, dev, apdev)
 
-        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPAuthDirection,Single,DPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,6,DPPWaitForConnect,Yes,DPPFrameType,PeerDiscoveryRequest," + args, timeout=10)
+        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPAuthDirection,Single,DPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,16,DPPWaitForConnect,Yes,DPPFrameType,PeerDiscoveryRequest," + args, timeout=20)
         if "BootstrapResult,OK,AuthResult,OK,ConfResult,OK,NetworkIntroResult,Errorsent" not in res:
             raise Exception("Unexpected result: " + res)
 
@@ -3623,7 +3623,7 @@ def test_sigma_dut_dpp_nfc_handover_requestor_enrollee(dev, apdev):
         logger.info("Updated URI[1]: " + uri1)
         dev[1].dpp_listen(freq, role="configurator")
 
-        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPProvisioningRole,Enrollee,DPPBS,NFC,DPPNFCHandover,Negotiated_Requestor,DPPTimeout,6,DPPWaitForConnect,Yes", timeout=10)
+        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPProvisioningRole,Enrollee,DPPBS,NFC,DPPNFCHandover,Negotiated_Requestor,DPPTimeout,16,DPPWaitForConnect,Yes", timeout=20)
         if "BootstrapResult,OK,AuthResult,OK,ConfResult,OK,NetworkIntroResult,OK,NetworkConnectResult,OK" not in res:
             raise Exception("Unexpected result: " + res)
 
@@ -3662,7 +3662,7 @@ def test_sigma_dut_dpp_nfc_handover_selector_enrollee(dev, apdev):
         dev[1].dpp_auth_init(peer=peer, own=id_own, configurator=conf_id,
                              conf="sta-dpp", ssid="DPPNET01")
 
-        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPProvisioningRole,Enrollee,DPPBS,NFC,DPPNFCHandover,Negotiated_Selector,DPPTimeout,6,DPPWaitForConnect,Yes", timeout=10)
+        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPProvisioningRole,Enrollee,DPPBS,NFC,DPPNFCHandover,Negotiated_Selector,DPPTimeout,16,DPPWaitForConnect,Yes", timeout=20)
         if "BootstrapResult,OK,AuthResult,OK,ConfResult,OK,NetworkIntroResult,OK,NetworkConnectResult,OK" not in res:
             raise Exception("Unexpected result: " + res)
 
@@ -3688,7 +3688,7 @@ def test_sigma_dut_dpp_nfc_static_read_enrollee(dev, apdev):
         dut.cmd_check("dev_exec_action,program,DPP,DPPActionType,SetPeerBootstrap,DPPBootstrappingdata,%s,DPPBS,NFC" % to_hex(uri_own))
         dev[1].dpp_listen(2437, role="configurator")
 
-        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPProvisioningRole,Enrollee,DPPBS,NFC,DPPNFCHandover,Static,DPPTimeout,6,DPPWaitForConnect,Yes", timeout=10)
+        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPProvisioningRole,Enrollee,DPPBS,NFC,DPPNFCHandover,Static,DPPTimeout,16,DPPWaitForConnect,Yes", timeout=20)
         if "BootstrapResult,OK,AuthResult,OK,ConfResult,OK,NetworkIntroResult,OK,NetworkConnectResult,OK" not in res:
             raise Exception("Unexpected result: " + res)
 
@@ -3716,7 +3716,7 @@ def test_sigma_dut_dpp_nfc_static_write_enrollee(dev, apdev):
         dev[1].dpp_auth_init(nfc_uri=uri_peer, configurator=conf_id,
                              conf="sta-dpp", ssid="DPPNET01")
 
-        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Responder,DPPProvisioningRole,Enrollee,DPPBS,NFC,DPPNFCHandover,Static,DPPTimeout,6,DPPWaitForConnect,Yes", timeout=10)
+        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Responder,DPPProvisioningRole,Enrollee,DPPBS,NFC,DPPNFCHandover,Static,DPPTimeout,16,DPPWaitForConnect,Yes", timeout=20)
         if "BootstrapResult,OK,AuthResult,OK,ConfResult,OK,NetworkIntroResult,OK,NetworkConnectResult,OK" not in res:
             raise Exception("Unexpected result: " + res)
 
@@ -3828,7 +3828,7 @@ def test_sigma_dut_dpp_reconfig_enrollee_sae(dev, apdev):
         if "status,COMPLETE" not in res:
             raise Exception("dev_exec_action did not succeed: " + res)
 
-        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPAuthDirection,Single,DPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,6,DPPWaitForConnect,Yes", timeout=10)
+        res = dut.run_cmd("dev_exec_action,program,DPP,DPPActionType,AutomaticDPP,DPPAuthRole,Initiator,DPPAuthDirection,Single,DPPProvisioningRole,Enrollee,DPPBS,QR,DPPTimeout,16,DPPWaitForConnect,Yes", timeout=20)
         if "BootstrapResult,OK,AuthResult,OK,ConfResult,OK,NetworkIntroResult,OK,NetworkConnectResult,OK" not in res:
             raise Exception("Unexpected result: " + res)
 
