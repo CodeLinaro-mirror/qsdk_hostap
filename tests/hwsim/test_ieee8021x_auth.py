@@ -1367,6 +1367,66 @@ def test_ieee8021x_auth_alg_eap_tls_gtk_rekey(dev, apdev):
 
     hwsim_utils.test_connectivity(dev[0], hapd)
 
+def run_ieee8021x_auth_alg_eap_tls_ptk_rekey(dev, apdev, privacy=False,
+                                             eap_reauth=False):
+    ssid = "test-ieee8021x-tls-ptk-rekey"
+
+    params = hostapd.wpa2_eap_params(ssid=ssid)
+    params["wpa_key_mgmt"] = "WPA-EAP-SHA256"
+    params["eap_using_authentication_frames"] = "1"
+    params["assoc_frame_encryption"] = "1"
+    params["pmksa_caching_privacy"] = "1" if privacy else "0"
+
+    hapd = hostapd.add_ap(apdev[0], params)
+
+    dev[0].connect(ssid,
+                   key_mgmt="WPA-EAP-SHA256",
+                   eap="TLS",
+                   identity="tls user",
+                   ca_cert="auth_serv/ca.pem",
+                   client_cert="auth_serv/user.pem",
+                   private_key="auth_serv/user.key",
+                   scan_freq="2412",
+                   pmksa_privacy="1" if privacy else "0",
+                   eap_over_auth_frame="1")
+
+    hapd.wait_sta()
+    time.sleep(1)
+    if eap_reauth:
+        if "OK" not in hapd.request("EAPOL_REAUTH " + dev[0].own_addr()):
+            raise Exception("EAPOL_REAUTH failed")
+        ev = dev[0].wait_event(["CTRL-EVENT-EAP-STARTED"], timeout=5)
+        if ev is None:
+            raise Exception("EAP authentication did not start")
+        ev = dev[0].wait_event(["CTRL-EVENT-EAP-SUCCESS"], timeout=5)
+        if ev is None:
+            raise Exception("EAP authentication did not succeed")
+    else:
+        if "OK" not in hapd.request("REKEY_PTK " + dev[0].own_addr()):
+            raise Exception("REKEY_PTK failed")
+        ev = dev[0].wait_event(["WPA: Key negotiation completed"], timeout=5)
+        if ev is None:
+            raise Exception("PTK rekey timed out")
+
+    hwsim_utils.test_connectivity(dev[0], hapd)
+
+def test_ieee8021x_auth_alg_eap_tls_ptk_rekey(dev, apdev):
+    """IEEE 802.1X authentication with EAP-TLS and PTK rekey"""
+    run_ieee8021x_auth_alg_eap_tls_ptk_rekey(dev, apdev)
+
+def test_ieee8021x_auth_alg_eap_tls_ptk_rekey_privacy(dev, apdev):
+    """IEEE 802.1X authentication with EAP-TLS and PTK rekey with PMKID privacy"""
+    run_ieee8021x_auth_alg_eap_tls_ptk_rekey(dev, apdev, privacy=True)
+
+def test_ieee8021x_auth_alg_eap_tls_eap_reauth(dev, apdev):
+    """IEEE 802.1X authentication with EAP-TLS and EAP reauth"""
+    run_ieee8021x_auth_alg_eap_tls_ptk_rekey(dev, apdev, eap_reauth=True)
+
+def test_ieee8021x_auth_alg_eap_tls_eap_reauth_privacy(dev, apdev):
+    """IEEE 802.1X authentication with EAP-TLS and EAP reauth with PMKID privacy"""
+    run_ieee8021x_auth_alg_eap_tls_ptk_rekey(dev, apdev, privacy=True,
+                                             eap_reauth=True)
+
 def test_ieee8021x_auth_protocol_eap_tls_pmksa_not_found_by_ap(dev, apdev):
     """IEEE 802.1X authentication with PMKSA caching fallback when AP does not recognize PMKID"""
     ssid = "test-ieee8021x-pmksa-fallback"
