@@ -3148,13 +3148,3 @@ static bool ieee802_1x_finished(struct hostapd_data *hapd,
 
 	return false;
 }
-
-
-#ifdef CONFIG_IEEE8021X_AUTH
-void ieee802_1x_eapol_sm_set_port_enabled(struct eapol_state_machine *sm,
-					  bool value)
-{
-	if (sm && sm->eap_if)
-		sm->eap_if->portEnabled = value;
-}
-#endif /* CONFIG_IEEE8021X_AUTH */

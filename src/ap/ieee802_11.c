@@ -3983,7 +3983,7 @@ static void handle_auth_802_1x(struct hostapd_data *hapd, struct sta_info *sta,
 				return;
 		}
 
-		ieee802_1x_eapol_sm_set_port_enabled(sta->eapol_sm, true);
+		ieee802_1x_notify_port_enabled(sta->eapol_sm, true);
 #ifdef CONFIG_PQC
 	} else if (sta->eap_auth_data.auth_success &&
 		   wpa_key_mgmt_pqc(sta->eap_auth_data.akm)) {
