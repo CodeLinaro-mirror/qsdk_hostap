@@ -3740,6 +3740,7 @@ void ieee80211_send_eap_req(struct hostapd_data *hapd, struct sta_info *sta,
 			sta->wpa_sm = wpa_auth_sta_init(hapd->wpa_auth,
 							sta->addr, NULL);
 		wpa_auth_sm_set_pmksa_epp(sta->wpa_sm, entry);
+		ieee802_1x_notify_port_valid(sta->eapol_sm, true);
 	}
 
 	reply = prepare_802_1x_auth_resp(hapd, sta, auth_transaction, status,
