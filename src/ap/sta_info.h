@@ -129,6 +129,8 @@ struct sta_info {
 	u8 qosinfo; /* Valid when WLAN_STA_WMM is set */
 #ifdef CONFIG_ENC_ASSOC
 	bool epp_sta; /* Indicates if the station is an EPP peer */
+	bool epp_eap_done; /* Indicates if an EPP STA has completed EAP
+			    * authentication using Authentication frames */
 #endif /* CONFIG_ENC_ASSOC */
 #ifdef CONFIG_PMKSA_PRIVACY
 	u8 snonce[NONCE_LEN]; /* SNonce to compute next PMKID if

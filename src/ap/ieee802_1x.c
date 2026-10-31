@@ -2343,7 +2343,7 @@ static void ieee802_1x_eapol_send(void *ctx, void *sta_ctx, u8 type,
 #endif /* CONFIG_WPS */
 
 #ifdef CONFIG_IEEE8021X_AUTH
-	if (sta->epp_sta && hapd->send_eap_req) {
+	if (sta->epp_sta && !sta->epp_eap_done && hapd->send_eap_req) {
 		hapd->send_eap_req(hapd, sta, type,
 				   sta->eap_auth_data.auth_transaction + 1,
 				   WLAN_STATUS_SUCCESS, NULL, data, datalen);

@@ -3740,6 +3740,7 @@ void ieee80211_send_eap_req(struct hostapd_data *hapd, struct sta_info *sta,
 			sta->wpa_sm = wpa_auth_sta_init(hapd->wpa_auth,
 							sta->addr, NULL);
 		wpa_auth_sm_set_pmksa_epp(sta->wpa_sm, entry);
+		sta->epp_eap_done = true;
 		ieee802_1x_notify_port_valid(sta->eapol_sm, true);
 	}
 
@@ -5836,6 +5837,7 @@ static void handle_auth(struct hostapd_data *hapd,
 	if (auth_alg == WLAN_AUTH_EPPKE || auth_alg == WLAN_AUTH_802_1X) {
 		wpa_printf(MSG_DEBUG, "Mark the station as an EPP peer");
 		sta->epp_sta = true;
+		sta->epp_eap_done = false;
 	}
 #endif /* CONFIG_ENC_ASSOC || CONFIG_IEEE8021X_AUTH */
 
