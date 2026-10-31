@@ -3736,6 +3736,10 @@ void ieee80211_send_eap_req(struct hostapd_data *hapd, struct sta_info *sta,
 		}
 		os_memcpy(sta->eap_auth_data.epp_pmkid_cur, entry->pmkid,
 			  PMKID_LEN);
+		if (!sta->wpa_sm)
+			sta->wpa_sm = wpa_auth_sta_init(hapd->wpa_auth,
+							sta->addr, NULL);
+		wpa_auth_sm_set_pmksa_epp(sta->wpa_sm, entry);
 	}
 
 	reply = prepare_802_1x_auth_resp(hapd, sta, auth_transaction, status,
@@ -10274,6 +10278,7 @@ update_pmksa_entry:
 			pmksa_cache_from_eapol_data(next, sta->eapol_sm);
 			pmksa_cache_free_entry(t_pmksa, entry);
 			pmksa_cache_auth_add_entry(pmksa, next);
+			wpa_auth_sm_set_pmksa_epp(sta->wpa_sm, next);
 		}
 	}
 skip_update:

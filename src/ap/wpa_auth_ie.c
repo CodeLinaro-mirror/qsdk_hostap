@@ -1358,7 +1358,8 @@ wpa_validate_wpa_ie(struct wpa_authenticator *wpa_auth,
 	}
 #endif /* CONFIG_IEEE80211R_AP && CONFIG_FILS */
 
-	sm->pmksa = NULL;
+	if (!sm->epp || data.num_pmkid > 0)
+		sm->pmksa = NULL;
 	for (i = 0; i < data.num_pmkid; i++) {
 		struct rsn_pmksa_cache *pmksa = wpa_auth->pmksa;
 

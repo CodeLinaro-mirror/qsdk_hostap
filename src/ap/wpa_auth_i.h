@@ -99,6 +99,7 @@ struct wpa_state_machine {
 	unsigned int is_wnmsleep:1;
 	unsigned int pmkid_set:1;
 	unsigned int spp_amsdu:1;
+	unsigned int epp:1;
 
 	unsigned int ptkstart_without_success;
 

@@ -7190,6 +7190,16 @@ void wpa_auth_pmksa_set_to_sm(struct rsn_pmksa_cache_entry *pmksa,
 }
 
 
+void wpa_auth_sm_set_pmksa_epp(struct wpa_state_machine *sm,
+			       struct rsn_pmksa_cache_entry *pmksa)
+{
+	if (sm) {
+		sm->pmksa = pmksa;
+		sm->epp = 1;
+	}
+}
+
+
 /*
  * Remove and free the group from wpa_authenticator. This is triggered by a
  * callback to make sure nobody is currently iterating the group list while it
